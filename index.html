@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#14283f">
+<link rel="manifest" href="./manifest.json">
+<link rel="icon" type="image/svg+xml" href="./icon.svg">
+<title>ClimaGestor | Manutenção de Ar-Condicionado</title>
+<style>
+:root{--navy:#14283f;--blue:#2478e5;--cyan:#dff3ff;--bg:#f4f7fb;--ink:#1d2b3a;--muted:#708096;--line:#e4eaf1;--green:#16845b;--orange:#d98216;--red:#c83c4a}
+*{box-sizing:border-box}body{margin:0;font-family:Inter,Segoe UI,Arial,sans-serif;background:var(--bg);color:var(--ink)}button,input,select,textarea{font:inherit}button{cursor:pointer}.app{display:flex;min-height:100vh}.sidebar{width:245px;background:var(--navy);color:#fff;padding:24px 16px;flex-shrink:0}.brand{font-weight:800;font-size:21px;letter-spacing:.2px;margin:0 8px 6px}.brand span{color:#6ec8ff}.tagline{font-size:12px;color:#b8c6d8;margin:0 8px 28px}.nav-label{font-size:10px;letter-spacing:1.4px;color:#90a6c0;margin:22px 10px 8px}.nav button{width:100%;border:0;background:transparent;color:#d7e1ee;text-align:left;padding:12px;border-radius:10px;margin:2px 0;font-size:14px}.nav button.active,.nav button:hover{background:#25415f;color:#fff}.nav button .ico{display:inline-block;width:25px}.side-foot{font-size:11px;color:#9fb1c6;line-height:1.6;margin:40px 8px 0}.main{flex:1;min-width:0}.topbar{height:74px;background:#fff;border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:space-between;padding:0 30px}.topbar small{color:var(--muted)}.topbar strong{display:block;font-size:15px;margin-top:4px}.user-badge{display:flex;align-items:center;gap:10px;font-size:13px}.avatar{width:36px;height:36px;border-radius:50%;background:#dceeff;color:#1d66bc;display:grid;place-items:center;font-weight:800}.content{padding:28px 30px;max-width:1500px;margin:auto}.pagehead{display:flex;justify-content:space-between;align-items:center;gap:15px;margin-bottom:24px}.pagehead h1{font-size:25px;margin:0 0 6px}.pagehead p{color:var(--muted);margin:0;font-size:13px}.btn{border:0;border-radius:9px;padding:11px 15px;font-weight:700;font-size:13px}.primary{background:var(--blue);color:#fff}.secondary{background:#eaf2fc;color:#205eaa}.ghost{background:#fff;border:1px solid var(--line);color:var(--ink)}.danger{background:#fff0f1;color:var(--red)}.grid{display:grid;gap:16px}.stats{grid-template-columns:repeat(5,minmax(0,1fr));margin-bottom:20px}.card{background:#fff;border:1px solid var(--line);border-radius:14px;padding:19px;min-width:0}.stat-top{display:flex;justify-content:space-between;align-items:center;color:var(--muted);font-size:12px}.stat-icon{width:34px;height:34px;border-radius:10px;display:grid;place-items:center;background:#eaf3ff;color:#2478e5;font-size:17px}.stat-value{font-size:26px;font-weight:800;margin:13px 0 5px}.stat-note{font-size:11px;color:var(--muted)}.two-col{grid-template-columns:1.3fr 1fr}.section-title{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px}.section-title h2{font-size:16px;margin:0}.section-title span{font-size:12px;color:var(--muted)}.list-row{display:flex;align-items:center;gap:12px;padding:13px 0;border-bottom:1px solid #eef1f5}.list-row:last-child{border:0}.mini-icon{width:38px;height:38px;border-radius:10px;background:#eef6ff;display:grid;place-items:center;font-size:18px;flex-shrink:0}.row-main{flex:1;min-width:0}.row-main strong{display:block;font-size:13px;margin-bottom:4px}.row-main small{color:var(--muted);font-size:11px}.pill{display:inline-block;padding:5px 8px;border-radius:30px;font-size:10px;font-weight:800;white-space:nowrap;background:#edf2f7;color:#5c6d80}.pill.green{background:#e3f7ed;color:#16845b}.pill.orange{background:#fff2df;color:#a7640d}.pill.red{background:#ffeaec;color:#bd3342}.pill.blue{background:#e7f1ff;color:#1e66be}.progress{height:7px;background:#edf1f6;border-radius:8px;overflow:hidden;margin-top:12px}.progress div{height:100%;background:var(--blue);border-radius:8px}.page{display:none}.page.active{display:block}.toolbar{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:16px}.toolbar input,.toolbar select,.field input,.field select,.field textarea{border:1px solid #dce4ed;border-radius:8px;padding:11px 12px;background:#fff;color:var(--ink);width:100%;outline:none}.toolbar input{max-width:310px}.table-wrap{overflow:auto;background:#fff;border:1px solid var(--line);border-radius:12px}table{width:100%;border-collapse:collapse;min-width:720px}th,td{text-align:left;padding:14px 16px;border-bottom:1px solid #edf1f5;font-size:12px}th{font-size:10px;text-transform:uppercase;letter-spacing:.7px;color:var(--muted);background:#fbfcfe}td strong{font-size:12px}tr:last-child td{border-bottom:0}.empty{text-align:center;color:var(--muted);padding:30px}.form-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}.field label{display:block;font-size:12px;font-weight:700;margin-bottom:7px}.field.full{grid-column:1/-1}.field textarea{min-height:85px;resize:vertical}.modal-backdrop{display:none;position:fixed;inset:0;background:#0e2038a6;z-index:10;align-items:center;justify-content:center;padding:18px}.modal-backdrop.show{display:flex}.modal{background:#fff;width:min(680px,100%);max-height:92vh;overflow:auto;border-radius:16px;padding:24px;box-shadow:0 20px 70px #0003}.modal-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:20px}.modal-head h2{font-size:19px;margin:0}.close{border:0;background:#f0f3f7;border-radius:8px;width:32px;height:32px}.modal-actions{display:flex;justify-content:flex-end;gap:10px;margin-top:20px}.report-box{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}.report-box .card h3{font-size:12px;color:var(--muted);margin:0 0 12px}.report-box .big{font-size:24px;font-weight:800}.muted{color:var(--muted)}.notice{background:#fff8e9;border:1px solid #f3dfb5;color:#835a19;padding:13px 15px;border-radius:10px;font-size:12px;line-height:1.5;margin-bottom:18px}.actions{display:flex;gap:6px}.smallbtn{border:1px solid var(--line);background:#fff;border-radius:7px;padding:6px 8px;font-size:11px}.footer-note{font-size:11px;color:var(--muted);margin-top:18px}
+@media(max-width:1000px){.sidebar{width:205px}.stats{grid-template-columns:repeat(2,minmax(0,1fr))}.two-col{grid-template-columns:1fr}.report-box{grid-template-columns:1fr 1fr}}
+@media(max-width:680px){.app{display:block}.sidebar{width:100%;padding:15px}.brand{display:inline-block}.tagline{display:none}.nav{display:flex;overflow:auto;gap:4px;margin-top:14px}.nav-label,.side-foot{display:none}.nav button{white-space:nowrap;width:auto;padding:9px 11px;font-size:12px}.nav button .ico{width:auto;margin-right:5px}.topbar{height:60px;padding:0 16px}.content{padding:20px 14px}.pagehead{align-items:flex-start;flex-direction:column}.stats{gap:10px}.card{padding:15px}.stat-value{font-size:22px}.form-grid,.report-box{grid-template-columns:1fr}.field.full{grid-column:auto}.user-badge span{display:none}}
+</style>
+</head>
+<body>
+<div class="app">
+<aside class="sidebar">
+  <div class="brand">Clima<span>Gestor</span></div><p class="tagline">Gestão técnica e financeira</p>
+  <div class="nav-label">MENU PRINCIPAL</div>
+  <nav class="nav">
+    <button class="active" data-page="dashboard"><span class="ico">▦</span> Visão geral</button>
+    <button data-page="services"><span class="ico">❄</span> Manutenções</button>
+    <button data-page="clients"><span class="ico">♙</span> Clientes</button>
+    <button data-page="quotes"><span class="ico">▤</span> Orçamentos</button>
+    <button data-page="receivables"><span class="ico">＄</span> Recebíveis</button>
+    <button data-page="reports"><span class="ico">▥</span> Relatórios</button>
+    <button data-page="spreadsheet"><span class="ico">▤</span> Planilha</button>
+    <button data-page="payments"><span class="ico">✓</span> Pagamentos</button>
+    <button data-page="sync"><span class="ico">⇅</span> Sincronização</button>
+  </nav>
+  <div class="side-foot">CLIMAGESTOR V2 • OFFLINE + GITHUB<br><span id="sideSyncState">Dados locais protegidos por backup</span></div>
+</aside>
+<main class="main">
+<header class="topbar"><div><small>GESTÃO DE CLIMATIZAÇÃO</small><strong id="todayLabel">Painel operacional</strong></div><div class="user-badge"><div class="avatar">CG</div><span>Administrador</span></div></header>
+<div class="content">
+<section id="page-dashboard" class="page active">
+ <div class="pagehead"><div><h1>Visão geral</h1><p>Acompanhe a operação, os serviços e o financeiro em um só lugar.</p></div><div class="toolbar"><button class="btn ghost" onclick="downloadSpreadsheetXls()">Baixar planilha Excel</button><button class="btn ghost" onclick="showPage('sync')">Configurar GitHub</button><button class="btn ghost" onclick="syncNow()">Sincronizar agora</button><button class="btn ghost" onclick="downloadBackup()">Backup completo</button><button class="btn ghost" onclick="document.getElementById('restoreBackupInput').click()">Restaurar backup</button><button class="btn primary" onclick="openModal('service')">＋ Nova manutenção</button><input id="restoreBackupInput" type="file" accept="application/json,.json" style="display:none" onchange="restoreBackup(event)"></div></div><div class="notice" id="cloudStatus"><strong>Modo offline.</strong> Os cadastros ficam neste aparelho. Para compartilhar com outro, configure Sincronização no GitHub; mantenha backups externos.</div>
+ <div class="grid stats">
+  <div class="card"><div class="stat-top">Serviços neste mês <span class="stat-icon">❄</span></div><div class="stat-value" id="statServices">0</div><div class="stat-note">Manutenções cadastradas</div></div>
+  <div class="card"><div class="stat-top">A receber de agendas futuras <span class="stat-icon">📅</span></div><div class="stat-value" id="statFutureReceivable">R$ 0,00</div><div class="stat-note">Serviços agendados ainda não pagos</div></div>
+  <div class="card"><div class="stat-top">Recebido hoje <span class="stat-icon">✓</span></div><div class="stat-value" id="statReceivedToday">R$ 0,00</div><div class="stat-note">Pagamentos registrados hoje</div></div>
+  <div class="card"><div class="stat-top">Recebido neste mês <span class="stat-icon">✓</span></div><div class="stat-value" id="statReceived">R$ 0,00</div><div class="stat-note">Total de pagamentos do mês</div></div>
+  <div class="card"><div class="stat-top">Total futuro a receber <span class="stat-icon">＄</span></div><div class="stat-value" id="statReceivable">R$ 0,00</div><div class="stat-note">Todos os recebíveis ainda pendentes</div></div>
+ </div>
+ <div id="preventiveAlerts" class="notice" style="display:none"></div>
+ <div class="grid two-col">
+  <div class="card"><div class="section-title"><h2>Próximas manutenções</h2><button class="btn ghost" onclick="showPage('services')">Ver todas</button></div><div id="upcomingList"></div></div>
+  <div class="card"><div class="section-title"><h2>Resumo financeiro</h2><span>Visão atual</span></div>
+   <div class="list-row"><div class="mini-icon">📥</div><div class="row-main"><strong>Total a receber</strong><small>Contas pendentes</small></div><strong id="financePending">R$ 0,00</strong></div>
+   <div class="list-row"><div class="mini-icon">✓</div><div class="row-main"><strong>Recebido no mês</strong><small>Pagamentos confirmados</small></div><strong id="financePaid">R$ 0,00</strong></div>
+   <div class="list-row"><div class="mini-icon">⚠</div><div class="row-main"><strong>Em atraso</strong><small>Contas vencidas</small></div><strong id="financeLate">R$ 0,00</strong></div>
+   <div class="progress"><div id="financeProgress" style="width:0%"></div></div><p class="muted" style="font-size:11px" id="financeProgressText">Nenhum recebimento registrado.</p>
+  </div>
+ </div>
+ <div class="footer-note">Dica: cadastre clientes, registre as visitas técnicas e acompanhe orçamentos e pagamentos para manter o painel atualizado.</div>
+</section>
+<section id="page-services" class="page">
+ <div class="pagehead"><div><h1>Manutenções</h1><p>Organize visitas preventivas, corretivas e higienizações.</p></div><button class="btn primary" onclick="openModal('service')">＋ Nova manutenção</button></div>
+ <div class="toolbar"><input id="serviceSearch" placeholder="Buscar cliente, equipamento ou técnico..." oninput="renderServices()"><select id="serviceFilter" onchange="renderServices()"><option value="">Todos os status</option><option>Agendada</option><option>Em andamento</option><option>Finalizada</option><option>Cancelada</option></select><button class="btn ghost" onclick="exportCSV('services')">Exportar CSV</button></div>
+ <div class="table-wrap"><table><thead><tr><th>Data</th><th>Cliente / Local</th><th>Serviço</th><th>Equipamento</th><th>Técnico</th><th>Status</th><th>Ações</th></tr></thead><tbody id="servicesTable"></tbody></table></div>
+</section>
+<section id="page-clients" class="page">
+ <div class="pagehead"><div><h1>Clientes</h1><p>Cadastre pessoas e empresas atendidas.</p></div><button class="btn primary" onclick="openModal('client')">＋ Novo cliente</button></div>
+ <div class="toolbar"><input id="clientSearch" placeholder="Buscar nome, telefone ou e-mail..." oninput="renderClients()"><button class="btn ghost" onclick="exportCSV('clients')">Exportar CSV</button></div>
+ <div class="table-wrap"><table><thead><tr><th>Cliente</th><th>Contato</th><th>E-mail</th><th>Endereço</th><th>Ações</th></tr></thead><tbody id="clientsTable"></tbody></table></div>
+</section>
+<section id="page-quotes" class="page">
+ <div class="pagehead"><div><h1>Orçamentos</h1><p>Monte propostas, acompanhe aprovações e converta em serviço.</p></div><button class="btn primary" onclick="openModal('quote')">＋ Novo orçamento</button></div>
+ <div class="toolbar"><input id="quoteSearch" placeholder="Buscar cliente ou descrição..." oninput="renderQuotes()"><select id="quoteFilter" onchange="renderQuotes()"><option value="">Todos os status</option><option>Em análise</option><option>Aprovado</option><option>Recusado</option></select><button class="btn ghost" onclick="exportCSV('quotes')">Exportar CSV</button></div>
+ <div class="table-wrap"><table><thead><tr><th>Nº</th><th>Cliente</th><th>Descrição</th><th>Validade</th><th>Valor</th><th>Status</th><th>Ações</th></tr></thead><tbody id="quotesTable"></tbody></table></div>
+</section>
+<section id="page-receivables" class="page">
+ <div class="pagehead"><div><h1>Recebíveis</h1><p>Controle vencimentos, pagamentos e inadimplência.</p></div><button class="btn primary" onclick="openModal('receivable')">＋ Lançar recebível</button></div>
+ <div class="toolbar"><input id="receivableSearch" placeholder="Buscar cliente ou descrição..." oninput="renderReceivables()"><select id="receivableFilter" onchange="renderReceivables()"><option value="">Todos</option><option>Pendente</option><option>Parcial</option><option>Parcial / Vencido</option><option>Pago</option><option>Vencido</option></select><button class="btn ghost" onclick="exportCSV('receivables')">Exportar CSV</button></div>
+ <div class="table-wrap"><table><thead><tr><th>Vencimento</th><th>Cliente</th><th>Descrição</th><th>Valor</th><th>Saldo</th><th>Status</th><th>Ações</th></tr></thead><tbody id="receivablesTable"></tbody></table></div>
+</section>
+<section id="page-spreadsheet" class="page">
+ <div class="pagehead"><div><h1>Planilha financeira</h1><p>Resumo dos serviços e previsão financeira, baseado nos registros locais.</p></div><button class="btn primary" onclick="downloadSpreadsheetXls()">⬇ Baixar planilha Excel</button></div>
+ <div class="grid stats">
+  <div class="card"><div class="stat-top">Recebido hoje</div><div class="stat-value" id="sheetReceivedToday">R$ 0,00</div></div>
+  <div class="card"><div class="stat-top">Recebido no mês</div><div class="stat-value" id="sheetReceivedMonth">R$ 0,00</div></div>
+  <div class="card"><div class="stat-top">Futuras agendas</div><div class="stat-value" id="sheetFutureCount">0</div></div>
+  <div class="card"><div class="stat-top">Total futuro a receber</div><div class="stat-value" id="sheetFutureTotal">R$ 0,00</div></div>
+ </div>
+ <div class="card"><div class="section-title"><h2>Resumo dos serviços</h2><span>Dados locais, atualizados após cada alteração.</span></div><div class="table-wrap"><table><thead><tr><th>Cliente</th><th>Data do serviço</th><th>Tipo do serviço</th><th>Valor do serviço</th><th>Valor recebido</th><th>Data do recebimento</th><th>Status</th></tr></thead><tbody id="sheetServices"></tbody></table></div></div>
+ <div class="card" style="margin-top:16px"><div class="section-title"><h2>Futuras agendas</h2><span>Valores ainda a receber</span></div><div class="table-wrap"><table><thead><tr><th>Cliente</th><th>Data agendada</th><th>Tipo do serviço</th><th>Valor</th><th>Recebido</th><th>A receber</th><th>Status</th></tr></thead><tbody id="sheetFuture"></tbody></table></div></div>
+ <div class="footer-note">Importante: o salvamento automático fica no navegador. Use o botão de backup para não perder os dados ao trocar de computador ou navegador.</div>
+</section>
+<section id="page-reports" class="page">
+ <div class="pagehead"><div><h1>Relatórios</h1><p>Resumo diário e mensal da operação e do financeiro.</p></div><button class="btn primary" onclick="window.print()">⤓ Imprimir / Salvar PDF</button></div>
+ <div class="toolbar"><label class="muted" style="align-self:center;font-size:12px">Período do relatório:</label><input type="date" id="reportStart"><input type="date" id="reportEnd"><button class="btn secondary" onclick="renderReports()">Aplicar período</button><button class="btn ghost" onclick="exportCSV('all')">Exportar dados (CSV)</button></div>
+ <div class="report-box" id="reportSummary"></div>
+ <div class="grid two-col" style="margin-top:16px"><div class="card"><div class="section-title"><h2>Produção por status</h2></div><div id="reportServices"></div></div><div class="card"><div class="section-title"><h2>Financeiro do período</h2></div><div id="reportMoney"></div></div></div>
+ <p class="footer-note">Período aplicado sobre datas das manutenções, orçamentos e pagamentos. Baixe o backup JSON regularmente; a exportação não altera arquivos Excel já existentes.</p>
+</section>
+<section id="page-payments" class="page"><div class="pagehead"><div><h1>Livro de pagamentos</h1><p>Baixas e estornos registrados sem apagar movimentos históricos.</p></div><button class="btn ghost" onclick="exportCSV('payments')">Exportar CSV</button></div><div class="table-wrap"><table><thead><tr><th>Data</th><th>Cliente</th><th>Referência</th><th>Tipo</th><th>Meio</th><th>Valor</th><th>Ações</th></tr></thead><tbody id="paymentsTable"></tbody></table></div></section>
+<section id="page-sync" class="page"><div class="pagehead"><div><h1>Sincronização GitHub</h1><p>Sem servidor próprio e sem Google Planilhas. Cofre privado criptografado.</p></div></div>
+<div class="notice"><strong>Importante:</strong> use um repositório <strong>privado</strong> para dados, separado do repositório <strong>público</strong> que hospeda o PWA via GitHub Pages. Token e senha nunca devem ser publicados no código. Token e senha permanecem apenas na memória durante esta sessão. Não perca a senha do cofre!</div>
+<div class="grid two-col"><div class="card"><h2>Conectar dispositivo</h2><form id="syncForm" class="form-grid">
+<div class="field"><label>Usuário/organização GitHub</label><input id="githubOwner" required placeholder="usuario" autocomplete="off"></div>
+<div class="field"><label>Repositório PRIVADO de dados</label><input id="githubRepo" required placeholder="climagestor-dados" autocomplete="off"></div>
+<div class="field full"><label>Token fine-grained (Contents: Read and write, só no repositório de dados)</label><input type="password" id="githubToken" required autocomplete="off" placeholder="github_pat_..."></div>
+<div class="field full"><label>Senha do cofre (mínimo 12 caracteres, a mesma nos dois aparelhos)</label><input type="password" id="githubPassword" minlength="12" required autocomplete="off" placeholder="Senha forte e exclusiva"></div>
+<div class="field full"><button class="btn primary" type="submit">Conectar e sincronizar</button> <button class="btn ghost" type="button" id="disconnectGithub">Desconectar</button></div>
+</form></div><div class="card"><h2>Estado da sincronização</h2><div id="syncState" class="notice">Aguardando conexão...</div><p class="muted">Sincronização automática enquanto o aplicativo estiver aberto e conectado, aproximadamente a cada 60 segundos, além do botão manual. Alterações offline ficam neste aparelho até a próxima sincronização bem-sucedida.</p><button class="btn secondary" onclick="syncNow()">⇅ Sincronizar agora</button><p class="footer-note">Se duas pessoas editarem o mesmo registro offline, o programa apresentará um conflito para escolha, sem descartar dados automaticamente.</p></div></div><div id="conflictPanel" class="card" style="display:none;margin-top:16px"></div>
+</section>
+</div>
+</main>
+</div>
+<div class="modal-backdrop" id="modalBackdrop" onclick="if(event.target===this)closeModal()"><div class="modal"><div class="modal-head"><h2 id="modalTitle">Novo registro</h2><button class="close" onclick="closeModal()">✕</button></div><form id="dataForm"><div id="formFields" class="form-grid"></div><div class="modal-actions"><button type="button" class="btn ghost" onclick="closeModal()">Cancelar</button><button class="btn primary" type="submit">Salvar registro</button></div></form></div></div>
+<style>
+:root{color-scheme:light} .sidebar{position:sticky;top:0;height:100vh;overflow:auto}.nav button{transition:background .12s}.btn:hover{filter:brightness(.96)}.btn:focus-visible,.smallbtn:focus-visible,.nav button:focus-visible,input:focus-visible,select:focus-visible{outline:3px solid #7cbcff;outline-offset:2px}.notice{overflow-wrap:anywhere}.notice.ok{background:#e9f8ee;border-color:#bce7ca;color:#176c45}.notice.warn{background:#fff1e8;border-color:#ffd2a3;color:#78470a}.muted-note{font-size:12px;color:var(--muted)}.smallbtn.danger{border-color:#ffd0d0}.form-grid .field input{min-width:0}.stat-value{overflow-wrap:anywhere}.conflict{border-top:1px solid var(--line);padding:16px 0}.conflict pre{white-space:pre-wrap;max-height:130px;overflow:auto;background:#f1f5f9;padding:10px;font-size:11px}.button-row{display:flex;gap:8px;flex-wrap:wrap}.pagehead .toolbar{margin:0}.sidebar .side-foot{padding-bottom:24px}
+@media(max-width:680px){.sidebar{height:auto;position:relative}.nav{padding-bottom:4px}.topbar small{font-size:10px}.toolbar{width:100%}.toolbar .btn{flex:1 1 auto}.content{padding-bottom:75px}.stat-note{font-size:10px}table{min-width:650px}}
+@media print{.sidebar,.topbar,.pagehead .btn,.toolbar,.smallbtn,.modal-backdrop,#cloudStatus{display:none!important}.app{display:block}.content{padding:4mm}.page{display:none!important}#page-reports{display:block!important}.report-box{grid-template-columns:repeat(3,1fr)}body{background:white}}
+</style>
+<script type="module" src="./app.js"></script>
+<script>if('serviceWorker' in navigator){window.addEventListener('load',()=>navigator.serviceWorker.register('./service-worker.js').catch(console.warn))}</script>
+</body></html>
