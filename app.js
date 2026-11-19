@@ -1,7 +1,8 @@
 import {TYPES,blank,id,today,cents,amt,cash,dateFmt,esc,active,find,name,stamp,created,paid,balance,status,normalize,validate,put,archive,payment,reversal,totals,csv} from './model.js';
 import {GitHubSync} from './sync.js';
+import {protectCredentials,revealCredentials} from './credentials.js';
 const $=k=>document.getElementById(k);
-const base=blank();let db=blank(),baseline=blank(),persistBusy=Promise.resolve(),syncClient=null,syncBusy=false,saveTimer=0,editKind='',editKey=null,payId=null,reversalId=null,lastSynced='Nunca',syncBinding='',conflictChoices={};
+const base=blank();let db=blank(),baseline=blank(),persistBusy=Promise.resolve(),syncClient=null,syncBusy=false,saveTimer=0,editKind='',editKey=null,payId=null,reversalId=null,lastSynced='Nunca',syncBinding='',syncVerified=false,lastSyncError='',conflictChoices={};
 const KEY='climagestor_v2';
 const schemes={
  client:{title:'Cliente',items:[['name','Nome / Razão social','text',1],['phone','Telefone / WhatsApp','tel'],['email','E-mail','email'],['address','Endereço','text'],['notes','Observações','textarea']]},
@@ -9,19 +10,37 @@ const schemes={
  quote:{title:'Orçamento',items:[['clientId','Cliente','client',1],['description','Descrição / escopo','textarea',1],['date','Data do orçamento','date',1],['validity','Validade até','date',1],['kind','Tipo de serviço','select:Preventiva|Corretiva|Higienização|Instalação|Avaliação técnica',1],['serviceDate','Data prevista da visita','date'],['equipment','Equipamento / capacidade','text'],['value','Valor total (R$)','number',1],['status','Status','select:Em análise|Aprovado|Recusado',1],['preventiveReturnDate','Retorno preventivo','date'],['notes','Condições / observações','textarea']]},
  receivable:{title:'Cobrança',items:[['clientId','Cliente','client',1],['sourceServiceId','Manutenção vinculada (opcional)','service'],['description','Descrição','text',1],['due','Vencimento','date',1],['value','Valor (R$)','number',1],['notes','Observações','textarea']]}
 };
-function dbStore(){return new Promise((resolve,reject)=>{let req=indexedDB.open('climagestor_db_v2',1);req.onupgradeneeded=()=>req.result.createObjectStore('data');req.onsuccess=()=>resolve(req.result);req.onerror=()=>reject(req.error);});}
+function dbStore(){return new Promise((resolve,reject)=>{let req=indexedDB.open('climagestor_db_v2',2);req.onupgradeneeded=()=>{if(!req.result.objectStoreNames.contains('data'))req.result.createObjectStore('data');if(!req.result.objectStoreNames.contains('auth'))req.result.createObjectStore('auth');};req.onsuccess=()=>resolve(req.result);req.onerror=()=>reject(req.error);req.onblocked=()=>reject(Error('Feche outras abas antigas do ClimaGestor para atualizar o armazenamento'));});}
 async function readStore(){const store=await dbStore();return new Promise((resolve,reject)=>{let t=store.transaction('data','readonly'),r=t.objectStore('data').get(KEY);r.onsuccess=()=>{resolve(r.result);store.close()};r.onerror=()=>{reject(r.error);store.close()};});}
 async function writeStore(value){const store=await dbStore();return new Promise((resolve,reject)=>{let t=store.transaction('data','readwrite');t.objectStore('data').put(value,KEY);t.oncomplete=()=>{store.close();resolve()};t.onerror=()=>{store.close();reject(t.error)};});}
+// Só neste dispositivo: armazenar ou apagar a sessão de sincronização.
+async function authStore(action,value){const store=await dbStore();return new Promise((resolve,reject)=>{const t=store.transaction('auth',action==='get'?'readonly':'readwrite');let req=t.objectStore('auth');if(action==='get')req=req.get('github-sync');else if(action==='delete')req.delete('github-sync');else req.put(value,'github-sync');let result=null;if(action==='get')req.onsuccess=()=>{result=req.result};t.oncomplete=()=>{store.close();resolve(result)};t.onerror=()=>{store.close();reject(t.error)};t.onabort=()=>{store.close();reject(t.error||Error('Falha na sessão local'))};});}
+const sessionSnapshot=()=>({db,baseline,syncBinding,lastSynced,modifiedAt:new Date().toISOString()});
 function countDiff(){let n=0;for(const k of TYPES){const m=new Map(baseline[k].map(x=>[x.id,x._rev]));for(const x of db[k])if(m.get(x.id)!==x._rev)n++;}return n;}
-function syncState(msg=''){const n=countDiff(),text=`${syncClient?'Conectado':'Desconectado'} · ${n} alteração(ões) local(is) pendente(s) · Última confirmação: ${lastSynced}`;
- if($('syncState'))$('syncState').textContent=msg||text;
- if($('sideSyncState'))$('sideSyncState').textContent=syncBusy?'Sincronizando...':text;
- if($('cloudStatus'))$('cloudStatus').innerHTML='<strong>'+esc(syncBusy?'Sincronizando...':msg||text)+'</strong>';
+function syncState(msg=''){
+ const n=countDiff(),mode=syncClient?(syncVerified?'Conectado':'Configurado (aguardando confirmação)'):'Desconectado';
+ const text=`${mode} · ${n} alteração(ões) local(is) pendente(s) · Última confirmação: ${lastSynced}`;
+ const display=syncBusy?'Sincronizando...':lastSyncError?'FALHA: '+lastSyncError+' · '+text:msg||text;
+ if($('syncState'))$('syncState').textContent=display;
+ if($('sideSyncState'))$('sideSyncState').textContent=display;
+ if($('cloudStatus'))$('cloudStatus').innerHTML='<strong>'+esc(display)+'</strong>';
 }
-async function commit(){persistBusy=persistBusy.catch(()=>{}).then(()=>writeStore({db,baseline,syncBinding,modifiedAt:new Date().toISOString()}));await persistBusy;renderAll();syncState();if(syncClient){clearTimeout(saveTimer);saveTimer=setTimeout(()=>syncNow(),1600)}}
-async function initialize(){try{const state=await readStore();if(state?.db){db=validate(state.db);baseline=validate(state.baseline||blank());syncBinding=state.syncBinding||'';}
- else {const legacy=localStorage.getItem('climagemanager_db_v1');if(legacy){db=validate(JSON.parse(legacy));await writeStore({db,baseline,syncBinding});showNotice('Dados antigos importados deste navegador. Faça backup antes de sincronizar.');}else await writeStore({db,baseline,syncBinding});}
- renderAll();syncState();}catch(e){console.error(e);alert('Falha ao carregar armazenamento: '+e.message);syncState('ERRO: armazenamento não disponível. Não cadastre dados sem corrigi-lo.');}}
+async function commit(){persistBusy=persistBusy.catch(()=>{}).then(()=>writeStore(sessionSnapshot()));await persistBusy;renderAll();syncState();if(syncClient){clearTimeout(saveTimer);saveTimer=setTimeout(()=>syncNow(),1600)}}
+async function initialize(){try{const state=await readStore();if(state?.db){db=validate(state.db);baseline=validate(state.baseline||blank());syncBinding=state.syncBinding||'';lastSynced=state.lastSynced||'Nunca';}
+ else {const legacy=localStorage.getItem('climagemanager_db_v1');if(legacy){db=validate(JSON.parse(legacy));await writeStore(sessionSnapshot());showNotice('Dados antigos importados deste navegador. Faça backup antes de sincronizar.');}else await writeStore(sessionSnapshot());}
+ renderAll();syncState();await autoReconnect();}catch(e){console.error(e);alert('Falha ao carregar armazenamento: '+e.message);lastSyncError='Armazenamento local não disponível; não cadastre dados';syncState();}}
+async function autoReconnect(){
+ let saved;try{saved=await authStore('get');}catch(e){lastSyncError='Não foi possível acessar credenciais salvas: '+e.message;syncState();return}
+ if(!saved)return;
+ try{
+  const info=await revealCredentials(saved);
+  if(syncBinding&&syncBinding!==info.owner+'/'+info.repo)throw Error('Repositório da sessão salva diferente do vinculado; configure novamente');
+  syncClient=new GitHubSync(info.owner,info.repo,info.token,info.password);
+  $('githubOwner').value=info.owner;$('githubRepo').value=info.repo;$('rememberGithub').checked=true;
+  syncState('Reconectando este dispositivo automaticamente...');
+  if(navigator.onLine)await syncNow();else syncState('Sem internet: este dispositivo reconectará ao voltar a conexão');
+ }catch(e){syncClient=null;lastSyncError='Não foi possível restaurar a sessão deste dispositivo: '+e.message;syncState();}
+}
 function showNotice(message){const b=$('cloudStatus');if(b)b.innerHTML='<strong>'+esc(message)+'</strong>'}
 function safeAction(fn){if(syncBusy){alert('Sincronização em andamento. Conclua a operação antes de alterar registros.');return}try{const result=fn();Promise.resolve(result).catch(e=>alert(e.message))}catch(e){alert(e.message)}}
 function showPage(page){document.querySelectorAll('.page').forEach(el=>el.classList.toggle('active',el.id==='page-'+page));document.querySelectorAll('.nav button').forEach(el=>el.classList.toggle('active',el.dataset.page===page));if(page==='reports')renderReports();if(page==='spreadsheet')renderSpreadsheet();if(page==='sync')syncState();}
@@ -70,15 +89,53 @@ const xmlEscape=v=>String(v??'').replace(/&/g,'&amp;').replace(/</g,'&lt;').repl
 function xmlSheet(title,heads,rows){const row=items=>`<Row>${items.map(x=>{const n=typeof x==='number'&&Number.isFinite(x);return `<Cell><Data ss:Type="${n?'Number':'String'}">${xmlEscape(x)}</Data></Cell>`}).join('')}</Row>`;return `<Worksheet ss:Name="${title}"><Table>${row(heads)}${rows.map(row).join('')}</Table></Worksheet>`;}
 function downloadSpreadsheetXls(){const t=totals(db);const srv=active(db,'services').map(s=>{const r=active(db,'receivables').find(r=>r.sourceServiceId===s.id);return[name(db,s.clientId),dateFmt(s.date),s.kind,s.value,r?amt(paid(db,r.id)):0,s.status]});const rec=active(db,'receivables').map(r=>[name(db,r.clientId),r.description,dateFmt(r.due),Number(r.value),amt(paid(db,r.id)),amt(Math.max(0,balance(db,r))),status(db,r)]);const pay=db.payments.map(p=>{const r=db.receivables.find(r=>r.id===p.receivableId);return[dateFmt(p.date),r?name(db,r.clientId):'',p.method,p.type,Number(p.amount),p.notes||'']});const xml=`<?xml version="1.0"?><Workbook xmlns="urn:schemas-microsoft-com:office:spreadsheet" xmlns:ss="urn:schemas-microsoft-com:office:spreadsheet">${xmlSheet('Resumo',['Indicador','Valor'],[['Recebido hoje',t.receivedToday],['Recebido no mês',t.received],['Valor pendente',t.open],['Agenda futura estimada',t.projected],['Clientes ativos',t.clients]])}${xmlSheet('Servicos',['Cliente','Data','Tipo','Valor','Pago','Status'],srv)}${xmlSheet('Recebiveis',['Cliente','Descrição','Vencimento','Valor','Pago','Saldo','Status'],rec)}${xmlSheet('Pagamentos',['Data','Cliente','Meio','Tipo','Valor','Observações'],pay)}${xmlSheet('Clientes',['Nome','Telefone','Email','Endereço'],active(db,'clients').map(c=>[c.name,c.phone,c.email,c.address]))}</Workbook>`;dl(xml,`ClimaGestor_${today()}.xls`,'application/vnd.ms-excel;charset=utf-8')}
 function renderConflict(result){const panel=$('conflictPanel');panel.style.display='block';panel.innerHTML='<h2>Alterações simultâneas: escolha por registro</h2><p class="muted-note">O programa não sobrescreveu nenhuma versão. Selecione a opção correta em cada conflito e clique em Resolver.</p>'+result.conflicts.map(c=>`<div class="conflict"><strong>${esc(c.kind)} / ${esc(c.id)}</strong><div class="grid two-col"><div><b>Este aparelho</b><pre>${esc(JSON.stringify(c.local,null,2))}</pre></div><div><b>GitHub</b><pre>${esc(JSON.stringify(c.remote,null,2))}</pre></div></div><label>Manter <select class="conflict-choice" data-key="${esc(c.key)}"><option value="">Escolha...</option><option value="local">Este aparelho</option><option value="remote">GitHub</option></select></label></div>`).join('')+'<button class="btn primary" id="resolveConflicts">Resolver e sincronizar</button>';$('resolveConflicts').onclick=()=>{const choices={};for(const el of document.querySelectorAll('.conflict-choice')){if(!el.value)return alert('Escolha uma opção para cada conflito');choices[el.dataset.key]=el.value}syncNow(choices)};showPage('sync');}
-async function syncNow(choices={}){if(syncBusy)return;if(!syncClient){showPage('sync');alert('Conecte o GitHub primeiro.');return}if(!navigator.onLine){syncState('Offline: dados locais preservados');return}
- syncBusy=true;syncState('Consultando e conferindo versões no GitHub...');try{await persistBusy;const result=await syncClient.run(structuredClone(db),structuredClone(baseline),choices);if(result.needsDecision){renderConflict(result);syncState('Conflito detectado: resolva as escolhas abaixo');return}
- db=validate(result.db);baseline=validate(result.baseline);await writeStore({db,baseline,syncBinding});lastSynced=new Date().toLocaleString('pt-BR');$('conflictPanel').style.display='none';renderAll();syncState('Sincronização confirmada pelo GitHub. '+lastSynced);
- }catch(err){console.error(err);syncState('Falha de sincronização: '+err.message);if(!Object.keys(choices).length)alert('Sincronização não concluída: '+err.message)}finally{syncBusy=false;syncState()}}
-async function connectGithub(e){e.preventDefault();try{syncClient=new GitHubSync($('githubOwner').value.trim(),$('githubRepo').value.trim(),$('githubToken').value.trim(),$('githubPassword').value);
-const nextBinding=syncClient.owner+'/'+syncClient.repo;
-if(syncBinding!==nextBinding){if(syncBinding && !confirm('O repositório de dados foi alterado. A referência de sincronização anterior será reiniciada. Deseja conectar ao novo repositório?')){syncClient=null;return}baseline=blank();syncBinding=nextBinding;await writeStore({db,baseline,syncBinding});}
-localStorage.setItem('climagestor_github_repo_v2',JSON.stringify({owner:syncClient.owner,repo:syncClient.repo}));$('githubToken').value='';$('githubPassword').value='';await syncNow();}catch(err){syncClient=null;alert(err.message)}}
-function disconnect(){syncClient=null;$('githubToken').value='';$('githubPassword').value='';syncState('GitHub desconectado. Dados permanecem salvos neste aparelho.');}
+async function syncNow(choices={}){
+ if(syncBusy)return false;
+ if(!syncClient){showPage('sync');alert('Conecte o GitHub neste dispositivo primeiro.');return false}
+ if(!navigator.onLine){syncState('Offline: alterações preservadas neste aparelho');return false}
+ syncBusy=true;syncState('Consultando e conferindo versões no GitHub...');
+ try{
+  await persistBusy;
+  const result=await syncClient.run(structuredClone(db),structuredClone(baseline),choices);
+  if(result.needsDecision){renderConflict(result);lastSyncError='Conflito de alterações: selecione a versão correta abaixo';return false}
+  db=validate(result.db);baseline=validate(result.baseline);
+  syncBinding=syncClient.owner+'/'+syncClient.repo;
+  lastSynced=new Date().toLocaleString('pt-BR');
+  await writeStore(sessionSnapshot());
+  lastSyncError='';syncVerified=true;
+  $('conflictPanel').style.display='none';renderAll();
+  return true;
+ }catch(err){console.error(err);lastSyncError=err.message||String(err);if(!Object.keys(choices).length)alert('Sincronização não concluída: '+lastSyncError);return false}
+ finally{syncBusy=false;syncState()}
+}
+async function connectGithub(e){
+ e.preventDefault();if(syncBusy){alert('Aguarde a sincronização atual terminar.');return}
+ const previousClient=syncClient,previousVerified=syncVerified,previousBaseline=structuredClone(baseline),previousBinding=syncBinding;
+ try{
+  const owner=$('githubOwner').value.trim(),repo=$('githubRepo').value.trim(),token=$('githubToken').value.trim(),password=$('githubPassword').value;
+  const next=new GitHubSync(owner,repo,token,password),binding=owner+'/'+repo;
+  if(syncBinding!==binding){if(syncBinding&&!confirm('O repositório de dados será alterado. Isso reinicia a referência de sincronização deste aparelho. Continuar?'))return;baseline=blank();}
+  syncClient=next;syncVerified=false;lastSyncError='';
+  const ok=await syncNow();
+  if(!ok){syncClient=previousClient;syncVerified=previousVerified;baseline=previousBaseline;syncBinding=previousBinding;syncState();return}
+  localStorage.setItem('climagestor_github_repo_v2',JSON.stringify({owner,repo}));
+  if($('rememberGithub').checked){
+   try{await authStore('put',await protectCredentials({owner,repo,token,password}));}
+   catch(err){alert('Conectado, mas não foi possível manter a sessão neste aparelho: '+err.message)}
+  }else await authStore('delete');
+  $('githubToken').value='';$('githubPassword').value='';
+  syncState();
+ }catch(err){syncClient=previousClient;syncVerified=previousVerified;baseline=previousBaseline;syncBinding=previousBinding;lastSyncError=err.message;syncState();alert(err.message)}
+}
+async function disconnect(){
+ if(syncBusy){alert('Aguarde a sincronização terminar antes de desconectar este aparelho.');return}
+ if(countDiff()>0&&!confirm('Há alterações locais ainda não sincronizadas. Elas continuarão neste aparelho. Desconectar somente este dispositivo?'))return;
+ syncClient=null;syncVerified=false;lastSyncError='';clearTimeout(saveTimer);
+ $('githubToken').value='';$('githubPassword').value='';$('rememberGithub').checked=false;
+ try{await authStore('delete')}catch(e){lastSyncError='Sessão local não apagada: '+e.message}
+ syncState();
+}
+
 Object.assign(window,{showPage,openModal,openPay,closeModal,renderServices,renderClients,renderQuotes,renderReceivables,renderReports,renderSpreadsheet,downloadBackup,restoreBackup,archiveRow,reverseRow,exportCSV,downloadSpreadsheetXls,syncNow});
 document.querySelectorAll('.nav button').forEach(b=>b.addEventListener('click',()=>showPage(b.dataset.page)));
 $('todayLabel').textContent=new Date().toLocaleDateString('pt-BR',{weekday:'long',day:'2-digit',month:'long',year:'numeric'});
@@ -86,5 +143,8 @@ $('dataForm').addEventListener('submit',saveModal);$('syncForm').addEventListene
 $('reportStart').value=today().slice(0,7)+'-01';$('reportEnd').value=today();
 try{const repo=JSON.parse(localStorage.getItem('climagestor_github_repo_v2')||'{}');$('githubOwner').value=repo.owner||'';$('githubRepo').value=repo.repo||'';}catch(e){}
 window.addEventListener('online',()=>{if(syncClient)syncNow()});
-window.setInterval(()=>{if(syncClient&&!syncBusy&&navigator.onLine)syncNow()},60000);
+document.addEventListener('visibilitychange',()=>{if(!document.hidden&&syncClient&&navigator.onLine)syncNow()});
+window.addEventListener('focus',()=>{if(syncClient&&navigator.onLine&&Date.now()-lastFocusPoll>12000){lastFocusPoll=Date.now();syncNow()}});
+let lastFocusPoll=0;
+window.setInterval(()=>{if(syncClient&&!syncBusy&&navigator.onLine)syncNow()},30000);
 initialize();
